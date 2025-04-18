@@ -18,8 +18,10 @@
 package com.io7m.shaml.server;
 
 import com.io7m.shaml.server.internal.ShAuthDocument;
+import com.io7m.shaml.server.internal.ShBook;
 import com.io7m.shaml.server.internal.ShCSS;
 import com.io7m.shaml.server.internal.ShCatalog;
+import com.io7m.shaml.server.internal.ShImage;
 import com.io7m.shaml.server.internal.ShLoans;
 import com.io7m.shaml.server.internal.ShRoot;
 import com.io7m.shaml.server.internal.ShSAMLAuthenticate;
@@ -66,6 +68,14 @@ public final class ShServer
     routingBuilder.get(
       "/css",
       new ShCSS(configuration)
+    );
+    routingBuilder.get(
+      "/image/*",
+      new ShImage(configuration)
+    );
+    routingBuilder.get(
+      "/book",
+      new ShBook(configuration)
     );
     routingBuilder.get(
       "/authentication",

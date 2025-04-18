@@ -19,4 +19,15 @@
   <id>${Configuration.ExternalBaseURI}/catalog</id>
   <updated>${Updated}</updated>
 
+  <entry>
+    <id>urn:uuid:4267ab22-f86c-44d2-83b8-c96b428d3198</id>
+    <title>Not Available</title>
+    <updated>2000-01-01T00:00:00+00:00</updated>
+    <summary type="html">
+      Not available.
+    </summary>
+    <link href="/image/orange.png" type="image/png" rel="http://opds-spec.org/image"/>
+    <link href="/image/orangeThumb.png" type="image/png" rel="http://opds-spec.org/image/thumbnail"/>
+  </entry>
+
 </feed>
