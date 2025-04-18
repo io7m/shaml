@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ -z "${SHAML_HOME}" ]
+then
+  echo "SHAML_HOME is unset" 1>&2
+  exit 1
+fi
+
+exec /usr/bin/env java \
+-p "${SHAML_HOME}/lib" \
+-m com.io7m.shaml.server/com.io7m.shaml.server.ShMain \
+"$@"

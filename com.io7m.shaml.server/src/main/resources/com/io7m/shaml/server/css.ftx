@@ -1,0 +1,8 @@
+body {
+  margin: 2em;
+  font-size: 200%;
+}
+
+.submit {
+  margin-top: 1em;
+}

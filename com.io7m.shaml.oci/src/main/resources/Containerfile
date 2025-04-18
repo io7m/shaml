@@ -1,0 +1,18 @@
+FROM docker.io/library/alpine:${com.io7m.oci.versionAlpine}
+FROM docker.io/library/eclipse-temurin:${com.io7m.oci.versionTemurin}
+
+ENV PATH="/shaml/bin:/sbin:/bin:/usr/sbin:/usr/bin:/opt/java/openjdk/bin"
+ENV SHAML_HOME="/shaml"
+
+COPY shaml /shaml
+
+LABEL "org.opencontainers.image.authors"="Mark Raynsford"
+LABEL "org.opencontainers.image.description"="I Wish I Was A SAML Server"
+LABEL "org.opencontainers.image.licenses"="ISC"
+LABEL "org.opencontainers.image.source"="https://www.github.com/io7m/shaml"
+LABEL "org.opencontainers.image.title"="SHAML"
+LABEL "org.opencontainers.image.url"="https://www.github.com/io7m/shaml"
+LABEL "org.opencontainers.image.version"="${project.version}"
+LABEL "org.opencontainers.image.revision"="${buildNumber}"
+
+ENTRYPOINT ["/shaml/bin/shaml"]
