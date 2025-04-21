@@ -19,43 +19,68 @@ package com.io7m.shaml.server.internal;
 
 import com.io7m.shaml.server.ShConfiguration;
 import freemarker.template.SimpleScalar;
+import freemarker.template.SimpleSequence;
 import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
 import java.io.OutputStreamWriter;
 import java.time.OffsetDateTime;
-import java.util.Objects;
+import java.util.List;
+import java.util.UUID;
 
 import static com.io7m.shaml.server.internal.ShDisableCache.disableCache;
 
-public final class ShCatalog implements Handler
+public final class ShEndpointLoans
+  extends ShLoggingHandler
+  implements Handler
 {
-  private final ShConfiguration configuration;
-  private final ShSessions sessions;
-
-  public ShCatalog(
+  public ShEndpointLoans(
     final ShConfiguration inConfiguration,
     final ShSessions inSessions)
   {
-    this.configuration =
-      Objects.requireNonNull(inConfiguration, "configuration");
-    this.sessions =
-      Objects.requireNonNull(inSessions, "sessions");
+    super(inConfiguration, inSessions);
   }
 
   @Override
-  public void handle(
+  public void handleActual(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception
   {
+    final ShSession session;
+
+    try {
+      final var cookie =
+        serverRequest.headers().cookies().get("SHAML_SESSION_ID");
+      final var cookieValue =
+        UUID.fromString(cookie);
+      session =
+        this.sessions.findSession(cookieValue);
+    } catch (final Exception e) {
+      disableCache(serverResponse);
+      serverResponse.status(401);
+      serverResponse.send("Unauthorized");
+      return;
+    }
+
     final var template =
-      ShTemplates.get("catalog.ftx");
+      ShTemplates.get("loans.ftx");
 
     final var data = new ShTemplateData();
     data.put("Configuration", this.configuration.toTemplateData());
     data.put("Updated", new SimpleScalar(OffsetDateTime.now().toString()));
+
+    final List<ShLoan> sessionLoans =
+      session.get("Loans", List.class);
+    final var loans =
+      new SimpleSequence();
+
+    for (final var loan : sessionLoans) {
+      loans.add(loan.toTemplateData());
+    }
+
+    data.put("Loans", loans);
 
     serverResponse.status(200);
     serverResponse.header("Content-Type", "application/atom+xml;profile=opds-catalog;kind=acquisition");

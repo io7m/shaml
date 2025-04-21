@@ -22,34 +22,61 @@ import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
-import java.io.OutputStreamWriter;
+import java.time.OffsetDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
-public final class ShCSS implements Handler
+public abstract class ShLoggingHandler implements Handler
 {
-  private final ShConfiguration configuration;
+  protected final ShConfiguration configuration;
+  protected final ShSessions sessions;
 
-  public ShCSS(
-    final ShConfiguration inConfiguration)
+  protected ShLoggingHandler(
+    final ShConfiguration inConfiguration,
+    final ShSessions inSessions)
   {
     this.configuration =
       Objects.requireNonNull(inConfiguration, "configuration");
+    this.sessions =
+      Objects.requireNonNull(inSessions, "sessions");
   }
 
+  protected abstract void handleActual(
+    final ServerRequest req,
+    final ServerResponse res)
+    throws Exception;
+
   @Override
-  public void handle(
-    final ServerRequest serverRequest,
-    final ServerResponse serverResponse)
+  public final void handle(
+    final ServerRequest req,
+    final ServerResponse res)
     throws Exception
   {
-    final var template = ShTemplates.get("css.ftx");
+    this.handleActual(req, res);
 
-    serverResponse.status(200);
-    serverResponse.header("Content-Type", "text/css");
+    String userName;
 
-    final var data = new ShTemplateData();
-    try (final var output = new OutputStreamWriter(serverResponse.outputStream())) {
-      template.process(data, output);
+    try {
+      final var cookie =
+        req.headers().cookies().get("SHAML_SESSION_ID");
+      final var cookieValue =
+        UUID.fromString(cookie);
+      final var session =
+        this.sessions.findSession(cookieValue);
+
+      userName = session.get("Username", String.class);
+    } catch (final Exception e) {
+      userName = "-";
     }
+
+    System.out.printf(
+      "%s - %s %s \"%s\" %s %d - -%n",
+      req.remotePeer().host(),
+      userName,
+      OffsetDateTime.now(),
+      req.path(),
+      res.status().code(),
+      res.bytesWritten()
+    );
   }
 }

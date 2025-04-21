@@ -23,23 +23,22 @@ import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public final class ShImage implements Handler
+public final class ShEndpointImage
+  extends ShLoggingHandler
+  implements Handler
 {
-  private final ShConfiguration configuration;
-
-  public ShImage(
-    final ShConfiguration inConfiguration)
+  public ShEndpointImage(
+    final ShConfiguration inConfiguration,
+    final ShSessions inSessions)
   {
-    this.configuration =
-      Objects.requireNonNull(inConfiguration, "configuration");
+    super(inConfiguration, inSessions);
   }
 
   @Override
-  public void handle(
+  public void handleActual(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception
@@ -74,7 +73,7 @@ public final class ShImage implements Handler
     serverResponse.status(200);
     serverResponse.header("Content-Type", "image/png");
 
-    try (final var stream = ShImage.class.getResourceAsStream(path)) {
+    try (final var stream = ShEndpointImage.class.getResourceAsStream(path)) {
       try (final var output = serverResponse.outputStream()) {
         stream.transferTo(output);
       }

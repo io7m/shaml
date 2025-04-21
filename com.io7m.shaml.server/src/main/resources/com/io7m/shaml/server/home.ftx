@@ -12,6 +12,7 @@
     <h2>${Configuration.ServiceDescription}</h2>
     <p>
       <nav>
+        <li><a href="/saml_authenticate?redirect_uri=%2F">Login</a></li>
         <li><a href="/catalog">Catalog</a></li>
         <li><a href="/loans">Loans</a></li>
         <li><a href="/authentication">Authentication Document</a></li>

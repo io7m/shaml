@@ -97,6 +97,7 @@ public final class ShSessions
     if (result == null) {
       throw new NoSuchElementException("No such session.");
     }
+    result.touch();
     return result;
   }
 }

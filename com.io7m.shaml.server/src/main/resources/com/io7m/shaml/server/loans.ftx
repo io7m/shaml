@@ -19,4 +19,20 @@
   <id>${Configuration.ExternalBaseURI}/loans</id>
   <updated>${Updated}</updated>
 
+  <#list Loans as Loan>
+  <entry>
+    <id>${Loan.BookID}</id>
+    <title>${Loan.Title}</title>
+    <updated>${Updated}</title>
+    <summary type="html">${Loan.Description}</summary>
+    <link href="/image/orange.png" type="image/png" rel="http://opds-spec.org/image"/>
+    <link href="/image/orangeThumb.png" type="image/png" rel="http://opds-spec.org/image/thumbnail"/>
+    <link href="${Loan.AcquisitionLast.Target}" rel="http://opds-spec.org/acquisition" type="${Loan.AcquisitionLast.Type}">
+      <opds:availability status="available"/>
+      <opds:holds total="0"/>
+      <opds:copies total="999999" available="999999"/>
+    </link>
+  </entry>
+  </#list>
+
 </feed>

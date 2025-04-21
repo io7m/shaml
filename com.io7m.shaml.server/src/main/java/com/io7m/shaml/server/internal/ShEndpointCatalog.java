@@ -19,43 +19,45 @@ package com.io7m.shaml.server.internal;
 
 import com.io7m.shaml.server.ShConfiguration;
 import freemarker.template.SimpleScalar;
+import freemarker.template.SimpleSequence;
 import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
 import java.io.OutputStreamWriter;
 import java.time.OffsetDateTime;
-import java.util.Objects;
 
 import static com.io7m.shaml.server.internal.ShDisableCache.disableCache;
 
-public final class ShLoans implements Handler
+public final class ShEndpointCatalog
+  extends ShLoggingHandler
+  implements Handler
 {
-  private final ShConfiguration configuration;
-  private final ShSessions sessions;
-
-  public ShLoans(
+  public ShEndpointCatalog(
     final ShConfiguration inConfiguration,
     final ShSessions inSessions)
   {
-    this.configuration =
-      Objects.requireNonNull(inConfiguration, "configuration");
-    this.sessions =
-      Objects.requireNonNull(inSessions, "sessions");
+    super(inConfiguration, inSessions);
   }
 
   @Override
-  public void handle(
+  public void handleActual(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception
   {
     final var template =
-      ShTemplates.get("loans.ftx");
+      ShTemplates.get("catalog.ftx");
 
     final var data = new ShTemplateData();
     data.put("Configuration", this.configuration.toTemplateData());
     data.put("Updated", new SimpleScalar(OffsetDateTime.now().toString()));
+
+    final var loans = new SimpleSequence();
+    loans.add(ShLoan.BOOK_SUCCEEDS.toTemplateData());
+    loans.add(ShLoan.BOOK_FAILS.toTemplateData());
+    loans.add(ShLoan.BOOK_SHOWS_LOGIN.toTemplateData());
+    data.put("Loans", loans);
 
     serverResponse.status(200);
     serverResponse.header("Content-Type", "application/atom+xml;profile=opds-catalog;kind=acquisition");

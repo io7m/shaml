@@ -22,37 +22,36 @@ import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
-import java.io.OutputStreamWriter;
-import java.util.Objects;
+import static com.io7m.shaml.server.internal.ShDisableCache.disableCache;
+import static com.io7m.shaml.server.internal.ShJSON.JSON;
 
-public final class ShRoot implements Handler
+public final class ShEndpointDownloadFails
+  extends ShLoggingHandler
+  implements Handler
 {
-  private final ShConfiguration configuration;
-
-  public ShRoot(
-    final ShConfiguration inConfiguration)
+  public ShEndpointDownloadFails(
+    final ShConfiguration inConfiguration,
+    final ShSessions inSessions)
   {
-    this.configuration =
-      Objects.requireNonNull(inConfiguration, "configuration");
+    super(inConfiguration, inSessions);
   }
 
   @Override
-  public void handle(
+  public void handleActual(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception
   {
-    final var template =
-      ShTemplates.get("home.ftx");
+    final var response = JSON.createObjectNode();
+    response.put(
+      "type",
+      "http://palaceproject.io/terms/server-on-fire/");
+    response.put("title", "Server on fire.");
+    response.put("status", 500);
+    response.put("detail", "Server is on fire.");
 
-    final var data = new ShTemplateData();
-    data.put("Configuration", this.configuration.toTemplateData());
-
-    serverResponse.status(200);
-    serverResponse.header("Content-Type", "text/html");
-
-    try (final var output = new OutputStreamWriter(serverResponse.outputStream())) {
-      template.process(data, output);
-    }
+    disableCache(serverResponse);
+    serverResponse.status(500);
+    serverResponse.send(JSON.writeValueAsBytes(response));
   }
 }

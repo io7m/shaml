@@ -1,6 +1,7 @@
 body {
   margin: 2em;
   font-size: 200%;
+  font-family: sans-serif;
 }
 
 .submit {

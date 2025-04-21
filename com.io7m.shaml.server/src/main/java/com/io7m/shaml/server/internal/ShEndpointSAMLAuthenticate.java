@@ -19,93 +19,82 @@ package com.io7m.shaml.server.internal;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.io7m.shaml.server.ShConfiguration;
+import io.helidon.http.SetCookie;
 import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
+import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.UUID;
 
 import static com.io7m.shaml.server.internal.ShDisableCache.disableCache;
 import static com.io7m.shaml.server.internal.ShJSON.JSON;
 
 /**
- * The SAML success/failure endpoint.
+ * The initial SAML authentication endpoint.
  */
 
-public final class ShSAMLAuthenticateRun implements Handler
+public final class ShEndpointSAMLAuthenticate
+  extends ShLoggingHandler
+  implements Handler
 {
-  private final ShConfiguration configuration;
-  private final ShSessions sessions;
-
-  public ShSAMLAuthenticateRun(
+  public ShEndpointSAMLAuthenticate(
     final ShConfiguration inConfiguration,
     final ShSessions inSessions)
   {
-    this.configuration =
-      Objects.requireNonNull(inConfiguration, "configuration");
-    this.sessions =
-      Objects.requireNonNull(inSessions, "sessions");
+    super(inConfiguration, inSessions);
   }
 
   @Override
-  public void handle(
+  public void handleActual(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception
   {
-    final ShSession session;
+    final URI redirectURI;
 
     try {
-      final var cookie =
-        serverRequest.headers().cookies().get("SHAML_SESSION_ID");
-      final var cookieValue =
-        UUID.fromString(cookie);
-      session =
-        this.sessions.findSession(cookieValue);
-    } catch (final Exception e) {
-      this.sendFailure(serverResponse);
+      redirectURI = URI.create(serverRequest.query().get("redirect_uri"));
+    } catch (final NoSuchElementException e) {
+      this.sendMissingParameterError(serverResponse, "redirect_uri");
       return;
     }
 
-    try {
-      final var result = serverRequest.query().get("result");
-      if (result.equalsIgnoreCase("Success")) {
-        this.sendSuccess(serverResponse, session);
-        return;
-      }
-      this.sendFailure(serverResponse);
-    } catch (final NoSuchElementException e) {
-      this.sendFailure(serverResponse);
+    final var session = this.sessions.createSession();
+    session.put("RedirectURI", redirectURI);
+
+    final var cookie =
+      SetCookie.create("SHAML_SESSION_ID", session.id().toString());
+
+    serverResponse.status(200);
+    serverResponse.headers().addCookie(cookie);
+    disableCache(serverResponse);
+
+    final var template =
+      ShTemplates.get("loginForm.ftx");
+    final var data =
+      new ShTemplateData();
+
+    try (final var output = new OutputStreamWriter(serverResponse.outputStream())) {
+      template.process(data, output);
     }
   }
 
-  private void sendSuccess(
+  private void sendMissingParameterError(
     final ServerResponse serverResponse,
-    final ShSession session)
-  {
-    final var redirectURI =
-      session.get("RedirectURI", URI.class);
-
-    disableCache(serverResponse);
-    serverResponse.status(302);
-    serverResponse.header("Location", redirectURI.toString());
-    serverResponse.send();
-  }
-
-  private void sendFailure(
-    final ServerResponse serverResponse)
+    final String name)
     throws JsonProcessingException
   {
     final var response = JSON.createObjectNode();
     response.put(
       "type",
-      "http://librarysimplified.org/terms/problem/saml/authentication-error");
-    response.put("title", "SAML authentication error.");
+      "http://librarysimplified.org/terms/problem/saml/invalid-saml-request");
+    response.put("title", "Invalid SAML request.");
     response.put("status", 401);
-    response.put("detail", "SAML authentication error.");
+    response.put(
+      "detail",
+      "Required parameter '%s' is missing.".formatted(name));
 
     disableCache(serverResponse);
     serverResponse.status(401);

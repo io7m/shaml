@@ -22,35 +22,36 @@ import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
-import java.util.Objects;
+import java.io.OutputStreamWriter;
 
-public final class ShBook implements Handler
+public final class ShEndpointRoot
+  extends ShLoggingHandler
+  implements Handler
 {
-  private static final String OSIRIS_EPUB =
-    "/com/io7m/shaml/server/osiris.epub";
-
-  private final ShConfiguration configuration;
-
-  public ShBook(
-    final ShConfiguration inConfiguration)
+  public ShEndpointRoot(
+    final ShConfiguration inConfiguration,
+    final ShSessions inSessions)
   {
-    this.configuration =
-      Objects.requireNonNull(inConfiguration, "configuration");
+    super(inConfiguration, inSessions);
   }
 
   @Override
-  public void handle(
+  public void handleActual(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception
   {
-    serverResponse.status(200);
-    serverResponse.header("Content-Type", "application/epub+zip");
+    final var template =
+      ShTemplates.get("home.ftx");
 
-    try (final var stream = ShBook.class.getResourceAsStream(OSIRIS_EPUB)) {
-      try (final var output = serverResponse.outputStream()) {
-        stream.transferTo(output);
-      }
+    final var data = new ShTemplateData();
+    data.put("Configuration", this.configuration.toTemplateData());
+
+    serverResponse.status(200);
+    serverResponse.header("Content-Type", "text/html");
+
+    try (final var output = new OutputStreamWriter(serverResponse.outputStream())) {
+      template.process(data, output);
     }
   }
 }

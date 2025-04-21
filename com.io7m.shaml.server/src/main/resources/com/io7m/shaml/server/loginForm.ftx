@@ -8,12 +8,19 @@
     <title>Login</title>
   </head>
   <body>
-    <form action="/saml_authenticate_run">
-      <input type="radio" id="succeed" name="result" value="Succeed">
-      <label for="html">Succeed</label><br>
-      <input type="radio" id="fail" name="result" value="Fail">
-      <label for="css">Fail</label><br>
-      <input type="submit" value="Submit" class="submit">
-    </form>
+    <h1>Login</h1>
+    <p>Valid users:</p>
+    <p>
+      <ul>
+        <li>grouch (starts with loans)</li>
+        <li>ernie (starts without loans)</li>
+      </ul>
+    </p>
+    <p>
+      <form action="/saml_authenticate_run">
+        <input type="text" placeholder="Username" name="user_name" required="true"/>
+        <input type="submit" value="Submit" class="submit"/>
+      </form>
+    </p>
   </body>
 </html>

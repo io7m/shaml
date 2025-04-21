@@ -17,15 +17,16 @@
 
 package com.io7m.shaml.server;
 
-import com.io7m.shaml.server.internal.ShAuthDocument;
-import com.io7m.shaml.server.internal.ShBook;
-import com.io7m.shaml.server.internal.ShCSS;
-import com.io7m.shaml.server.internal.ShCatalog;
-import com.io7m.shaml.server.internal.ShImage;
-import com.io7m.shaml.server.internal.ShLoans;
-import com.io7m.shaml.server.internal.ShRoot;
-import com.io7m.shaml.server.internal.ShSAMLAuthenticate;
-import com.io7m.shaml.server.internal.ShSAMLAuthenticateRun;
+import com.io7m.shaml.server.internal.ShEndpointAuthDocument;
+import com.io7m.shaml.server.internal.ShEndpointCSS;
+import com.io7m.shaml.server.internal.ShEndpointCatalog;
+import com.io7m.shaml.server.internal.ShEndpointDownload;
+import com.io7m.shaml.server.internal.ShEndpointDownloadFails;
+import com.io7m.shaml.server.internal.ShEndpointImage;
+import com.io7m.shaml.server.internal.ShEndpointLoans;
+import com.io7m.shaml.server.internal.ShEndpointRoot;
+import com.io7m.shaml.server.internal.ShEndpointSAMLAuthenticate;
+import com.io7m.shaml.server.internal.ShEndpointSAMLAuthenticateRun;
 import com.io7m.shaml.server.internal.ShSessions;
 import io.helidon.webserver.WebServer;
 import io.helidon.webserver.WebServerConfig;
@@ -63,43 +64,59 @@ public final class ShServer
 
     routingBuilder.get(
       "/",
-      new ShRoot(configuration)
+      new ShEndpointRoot(configuration, sessions)
     );
     routingBuilder.get(
       "/css",
-      new ShCSS(configuration)
+      new ShEndpointCSS(configuration, sessions)
     );
     routingBuilder.get(
       "/image/*",
-      new ShImage(configuration)
+      new ShEndpointImage(configuration, sessions)
+    );
+
+    routingBuilder.get(
+      "/download",
+      new ShEndpointDownload(configuration, sessions)
     );
     routingBuilder.get(
-      "/book",
-      new ShBook(configuration)
+      "/download/*",
+      new ShEndpointDownload(configuration, sessions)
     );
+
+    routingBuilder.get(
+      "/download-fails",
+      new ShEndpointDownloadFails(configuration, sessions)
+    );
+    routingBuilder.get(
+      "/download-fails/*",
+      new ShEndpointDownloadFails(configuration, sessions)
+    );
+
     routingBuilder.get(
       "/authentication",
-      new ShAuthDocument(configuration)
+      new ShEndpointAuthDocument(configuration, sessions)
     );
     routingBuilder.get(
       "/loans",
-      new ShLoans(configuration, sessions)
+      new ShEndpointLoans(configuration, sessions)
     );
     routingBuilder.get(
       "/catalog",
-      new ShCatalog(configuration, sessions)
+      new ShEndpointCatalog(configuration, sessions)
     );
+
     routingBuilder.get(
       "/saml_authenticate",
-      new ShSAMLAuthenticate(configuration, sessions)
+      new ShEndpointSAMLAuthenticate(configuration, sessions)
     );
     routingBuilder.get(
       "/saml_authenticate_run",
-      new ShSAMLAuthenticateRun(configuration, sessions)
+      new ShEndpointSAMLAuthenticateRun(configuration, sessions)
     );
     routingBuilder.post(
       "/saml_authenticate_run",
-      new ShSAMLAuthenticateRun(configuration, sessions)
+      new ShEndpointSAMLAuthenticateRun(configuration, sessions)
     );
 
     final var webServerBuilder =
