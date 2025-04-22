@@ -18,65 +18,65 @@
 package com.io7m.shaml.server.internal;
 
 import com.io7m.shaml.server.ShConfiguration;
+import io.helidon.http.HeaderNames;
 import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
-import java.time.OffsetDateTime;
-import java.util.Objects;
+import java.util.List;
 import java.util.UUID;
 
-public abstract class ShLoggingHandler implements Handler
-{
-  protected final ShConfiguration configuration;
-  protected final ShSessions sessions;
+import static com.io7m.shaml.server.internal.ShDisableCache.disableCache;
 
-  protected ShLoggingHandler(
+public abstract class ShHandlerAuthenticated
+  extends ShHandlerLogged
+  implements Handler
+{
+  protected ShHandlerAuthenticated(
     final ShConfiguration inConfiguration,
     final ShSessions inSessions)
   {
-    this.configuration =
-      Objects.requireNonNull(inConfiguration, "configuration");
-    this.sessions =
-      Objects.requireNonNull(inSessions, "sessions");
+    super(inConfiguration, inSessions);
   }
 
-  protected abstract void handleActual(
+  protected abstract void handleAuthenticated(
     final ServerRequest req,
+    final ShSession session,
     final ServerResponse res)
     throws Exception;
 
   @Override
-  public final void handle(
+  protected final void handleLogged(
     final ServerRequest req,
     final ServerResponse res)
     throws Exception
   {
-    this.handleActual(req, res);
-
-    String userName;
+    ShSession session = null;
 
     try {
-      final var cookie =
-        req.headers().cookies().get("SHAML_SESSION_ID");
-      final var cookieValue =
-        UUID.fromString(cookie);
-      final var session =
-        this.sessions.findSession(cookieValue);
-
-      userName = session.get("Username", String.class);
+      final var cookie = req.headers().cookies().get("SHAML_SESSION_ID");
+      final var sessionID = UUID.fromString(cookie);
+      session = this.sessions.findSession(sessionID);
     } catch (final Exception e) {
-      userName = "-";
+      // Ignored
     }
 
-    System.out.printf(
-      "%s - %s %s \"%s\" %s %d - -%n",
-      req.remotePeer().host(),
-      userName,
-      OffsetDateTime.now(),
-      req.path(),
-      res.status().code(),
-      res.bytesWritten()
-    );
+    try {
+      final var bearer = req.headers().get(HeaderNames.AUTHORIZATION);
+      final var segments = List.of(bearer.values().split("\\s+"));
+      final var sessionID = UUID.fromString(segments.get(1));
+      session = this.sessions.findSession(sessionID);
+    } catch (final Exception e) {
+      // Ignored
+    }
+
+    if (session == null) {
+      disableCache(res);
+      res.status(401);
+      res.send("Unauthorized");
+      return;
+    }
+
+    this.handleAuthenticated(req, session, res);
   }
 }

@@ -22,13 +22,11 @@ import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
-import java.io.OutputStreamWriter;
-
-public final class ShEndpointCSS
+public final class ShEndpoint404
   extends ShHandlerLogged
   implements Handler
 {
-  public ShEndpointCSS(
+  public ShEndpoint404(
     final ShConfiguration inConfiguration,
     final ShSessions inSessions)
   {
@@ -41,14 +39,7 @@ public final class ShEndpointCSS
     final ServerResponse serverResponse)
     throws Exception
   {
-    final var template = ShTemplates.get("css.ftx");
-
-    serverResponse.status(200);
-    serverResponse.header("Content-Type", "text/css");
-
-    final var data = new ShTemplateData();
-    try (final var output = new OutputStreamWriter(serverResponse.outputStream())) {
-      template.process(data, output);
-    }
+    serverResponse.status(404);
+    serverResponse.send("404 Not Found\r\n");
   }
 }

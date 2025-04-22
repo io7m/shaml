@@ -25,7 +25,7 @@ import io.helidon.webserver.http.ServerResponse;
 import java.io.OutputStreamWriter;
 
 public final class ShEndpointRoot
-  extends ShLoggingHandler
+  extends ShHandlerLogged
   implements Handler
 {
   public ShEndpointRoot(
@@ -36,7 +36,7 @@ public final class ShEndpointRoot
   }
 
   @Override
-  public void handleActual(
+  public void handleLogged(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception

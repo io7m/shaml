@@ -26,7 +26,7 @@ import static com.io7m.shaml.server.internal.ShDisableCache.disableCache;
 import static com.io7m.shaml.server.internal.ShJSON.JSON;
 
 public final class ShEndpointDownloadFails
-  extends ShLoggingHandler
+  extends ShHandlerLogged
   implements Handler
 {
   public ShEndpointDownloadFails(
@@ -37,7 +37,7 @@ public final class ShEndpointDownloadFails
   }
 
   @Override
-  public void handleActual(
+  public void handleLogged(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception

@@ -30,7 +30,7 @@ import static com.io7m.shaml.server.internal.ShJSON.JSON;
  * The authentication document endpoint.
  */
 
-public final class ShEndpointAuthDocument extends ShLoggingHandler implements Handler
+public final class ShEndpointAuthDocument extends ShHandlerLogged implements Handler
 {
   public ShEndpointAuthDocument(
     final ShConfiguration inConfiguration,
@@ -40,7 +40,7 @@ public final class ShEndpointAuthDocument extends ShLoggingHandler implements Ha
   }
 
   @Override
-  public void handleActual(
+  public void handleLogged(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception
@@ -135,7 +135,7 @@ public final class ShEndpointAuthDocument extends ShLoggingHandler implements Ha
     return linkArray;
   }
 
-  private ObjectNode createAuthObject()
+  private ArrayNode createAuthObject()
   {
     final var baseURI =
       this.configuration.externalBaseURI();
@@ -151,6 +151,9 @@ public final class ShEndpointAuthDocument extends ShLoggingHandler implements Ha
     linkObject.put("rel", "authenticate");
     linkObject.put("href", baseURI.resolve("saml_authenticate").toString());
     links.add(linkObject);
-    return authObject;
+
+    final var auths = JSON.createArrayNode();
+    auths.add(authObject);
+    return auths;
   }
 }

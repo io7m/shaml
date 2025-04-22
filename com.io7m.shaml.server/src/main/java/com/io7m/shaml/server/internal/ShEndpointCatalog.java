@@ -30,7 +30,7 @@ import java.time.OffsetDateTime;
 import static com.io7m.shaml.server.internal.ShDisableCache.disableCache;
 
 public final class ShEndpointCatalog
-  extends ShLoggingHandler
+  extends ShHandlerLogged
   implements Handler
 {
   public ShEndpointCatalog(
@@ -41,7 +41,7 @@ public final class ShEndpointCatalog
   }
 
   @Override
-  public void handleActual(
+  public void handleLogged(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception

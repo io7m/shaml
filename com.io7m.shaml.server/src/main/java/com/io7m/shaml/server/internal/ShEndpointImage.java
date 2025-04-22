@@ -27,7 +27,7 @@ import java.io.IOException;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class ShEndpointImage
-  extends ShLoggingHandler
+  extends ShHandlerLogged
   implements Handler
 {
   public ShEndpointImage(
@@ -38,7 +38,7 @@ public final class ShEndpointImage
   }
 
   @Override
-  public void handleActual(
+  public void handleLogged(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception

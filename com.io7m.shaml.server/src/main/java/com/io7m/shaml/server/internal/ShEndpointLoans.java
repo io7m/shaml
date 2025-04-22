@@ -27,12 +27,11 @@ import io.helidon.webserver.http.ServerResponse;
 import java.io.OutputStreamWriter;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import static com.io7m.shaml.server.internal.ShDisableCache.disableCache;
 
 public final class ShEndpointLoans
-  extends ShLoggingHandler
+  extends ShHandlerAuthenticated
   implements Handler
 {
   public ShEndpointLoans(
@@ -43,27 +42,12 @@ public final class ShEndpointLoans
   }
 
   @Override
-  public void handleActual(
+  protected void handleAuthenticated(
     final ServerRequest serverRequest,
+    final ShSession session,
     final ServerResponse serverResponse)
     throws Exception
   {
-    final ShSession session;
-
-    try {
-      final var cookie =
-        serverRequest.headers().cookies().get("SHAML_SESSION_ID");
-      final var cookieValue =
-        UUID.fromString(cookie);
-      session =
-        this.sessions.findSession(cookieValue);
-    } catch (final Exception e) {
-      disableCache(serverResponse);
-      serverResponse.status(401);
-      serverResponse.send("Unauthorized");
-      return;
-    }
-
     final var template =
       ShTemplates.get("loans.ftx");
 

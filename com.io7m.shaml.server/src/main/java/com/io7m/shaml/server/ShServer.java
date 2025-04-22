@@ -17,6 +17,7 @@
 
 package com.io7m.shaml.server;
 
+import com.io7m.shaml.server.internal.ShEndpoint404;
 import com.io7m.shaml.server.internal.ShEndpointAuthDocument;
 import com.io7m.shaml.server.internal.ShEndpointCSS;
 import com.io7m.shaml.server.internal.ShEndpointCatalog;
@@ -24,6 +25,7 @@ import com.io7m.shaml.server.internal.ShEndpointDownload;
 import com.io7m.shaml.server.internal.ShEndpointDownloadFails;
 import com.io7m.shaml.server.internal.ShEndpointImage;
 import com.io7m.shaml.server.internal.ShEndpointLoans;
+import com.io7m.shaml.server.internal.ShEndpointPatron;
 import com.io7m.shaml.server.internal.ShEndpointRoot;
 import com.io7m.shaml.server.internal.ShEndpointSAMLAuthenticate;
 import com.io7m.shaml.server.internal.ShEndpointSAMLAuthenticateRun;
@@ -98,6 +100,10 @@ public final class ShServer
       new ShEndpointAuthDocument(configuration, sessions)
     );
     routingBuilder.get(
+      "/patron",
+      new ShEndpointPatron(configuration, sessions)
+    );
+    routingBuilder.get(
       "/loans",
       new ShEndpointLoans(configuration, sessions)
     );
@@ -117,6 +123,11 @@ public final class ShServer
     routingBuilder.post(
       "/saml_authenticate_run",
       new ShEndpointSAMLAuthenticateRun(configuration, sessions)
+    );
+
+    routingBuilder.get(
+      "/*",
+      new ShEndpoint404(configuration, sessions)
     );
 
     final var webServerBuilder =

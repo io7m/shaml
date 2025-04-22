@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -38,7 +39,7 @@ import static com.io7m.shaml.server.internal.ShJSON.JSON;
  */
 
 public final class ShEndpointSAMLAuthenticateRun
-  extends ShLoggingHandler
+  extends ShHandlerLogged
   implements Handler
 {
   private static final Logger LOG =
@@ -52,7 +53,7 @@ public final class ShEndpointSAMLAuthenticateRun
   }
 
   @Override
-  public void handleActual(
+  public void handleLogged(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception
@@ -72,9 +73,9 @@ public final class ShEndpointSAMLAuthenticateRun
     }
 
     try {
-      final var result = serverRequest.query().get("user_name");
+      final var result = serverRequest.query().get("user_name").toUpperCase(Locale.ROOT);
       switch (result) {
-        case "grouch" -> {
+        case "GROUCH" -> {
           LOG.info("grouch logged in");
           final var loans = new ArrayList<ShLoan>();
           loans.add(ShLoan.BOOK_SUCCEEDS);
@@ -84,7 +85,7 @@ public final class ShEndpointSAMLAuthenticateRun
           session.put("Loans", loans);
           this.sendSuccess(serverResponse, session);
         }
-        case "ernie" -> {
+        case "ERNIE" -> {
           LOG.info("ernie logged in");
           final var loans = new ArrayList<ShLoan>();
           session.put("Username", "ernie");
@@ -108,9 +109,21 @@ public final class ShEndpointSAMLAuthenticateRun
     final var redirectURI =
       session.get("RedirectURI", URI.class);
 
+    final var target = new StringBuilder();
+    target.append(redirectURI);
+    if (target.toString().contains("?")) {
+      target.append("&");
+    } else {
+      target.append("?");
+    }
+    target.append("access_token=");
+    target.append(session.id());
+    target.append("&patron_info=");
+    target.append(session.id());
+
     disableCache(serverResponse);
     serverResponse.status(302);
-    serverResponse.header("Location", redirectURI.toString());
+    serverResponse.header("Location", target.toString());
     serverResponse.send();
   }
 

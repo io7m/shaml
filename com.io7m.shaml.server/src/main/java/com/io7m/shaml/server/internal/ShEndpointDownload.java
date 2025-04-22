@@ -23,7 +23,7 @@ import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
 public final class ShEndpointDownload
-  extends ShLoggingHandler
+  extends ShHandlerLogged
   implements Handler
 {
   private static final String OSIRIS_EPUB =
@@ -37,7 +37,7 @@ public final class ShEndpointDownload
   }
 
   @Override
-  public void handleActual(
+  public void handleLogged(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception

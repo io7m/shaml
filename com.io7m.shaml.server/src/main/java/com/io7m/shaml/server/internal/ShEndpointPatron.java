@@ -22,13 +22,17 @@ import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
-import java.io.OutputStreamWriter;
+import java.util.UUID;
 
-public final class ShEndpointCSS
-  extends ShHandlerLogged
-  implements Handler
+import static com.io7m.shaml.server.internal.ShJSON.JSON;
+
+/**
+ * The patron endpoint.
+ */
+
+public final class ShEndpointPatron extends ShHandlerLogged implements Handler
 {
-  public ShEndpointCSS(
+  public ShEndpointPatron(
     final ShConfiguration inConfiguration,
     final ShSessions inSessions)
   {
@@ -41,14 +45,15 @@ public final class ShEndpointCSS
     final ServerResponse serverResponse)
     throws Exception
   {
-    final var template = ShTemplates.get("css.ftx");
+    final var obj = JSON.createObjectNode();
+
+    obj.put("simplified:authorization_identifier", UUID.randomUUID().toString());
+    obj.set("settings", JSON.createObjectNode());
+    obj.set("links", JSON.createArrayNode());
+    obj.set("drm", JSON.createArrayNode());
 
     serverResponse.status(200);
-    serverResponse.header("Content-Type", "text/css");
-
-    final var data = new ShTemplateData();
-    try (final var output = new OutputStreamWriter(serverResponse.outputStream())) {
-      template.process(data, output);
-    }
+    serverResponse.header("Content-Type", "application/vnd.opds.authentication.v1.0+json");
+    serverResponse.send(JSON.writeValueAsBytes(obj));
   }
 }

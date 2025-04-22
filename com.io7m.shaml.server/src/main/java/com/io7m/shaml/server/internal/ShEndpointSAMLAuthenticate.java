@@ -36,7 +36,7 @@ import static com.io7m.shaml.server.internal.ShJSON.JSON;
  */
 
 public final class ShEndpointSAMLAuthenticate
-  extends ShLoggingHandler
+  extends ShHandlerLogged
   implements Handler
 {
   public ShEndpointSAMLAuthenticate(
@@ -47,7 +47,7 @@ public final class ShEndpointSAMLAuthenticate
   }
 
   @Override
-  public void handleActual(
+  public void handleLogged(
     final ServerRequest serverRequest,
     final ServerResponse serverResponse)
     throws Exception
