@@ -17,7 +17,7 @@
       </ul>
     </p>
     <p>
-      <form action="/saml_authenticate_run">
+      <form action="${LoginTarget}">
         <input type="text" placeholder="Username" name="user_name" required="true"/>
         <input type="submit" value="Submit" class="submit"/>
       </form>

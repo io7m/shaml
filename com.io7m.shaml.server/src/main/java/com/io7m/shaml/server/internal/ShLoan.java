@@ -23,7 +23,10 @@ import freemarker.template.TemplateModel;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public record ShLoan(
   UUID bookId,
@@ -128,13 +131,21 @@ public record ShLoan(
       )
     );
 
+  /**
+   * The known books.
+   */
+
+  public static final Map<UUID, ShLoan> BOOKS =
+    Stream.of(BOOK_SHOWS_LOGIN, BOOK_SUCCEEDS, BOOK_FAILS)
+      .collect(Collectors.toMap(b -> b.bookId, b -> b));
+
   public TemplateModel toTemplateData()
   {
     final var configData = new ShTemplateData();
     configData.put("BookID", new SimpleScalar(this.bookId.toString()));
     configData.put("Title", new SimpleScalar(this.title));
     configData.put("Description", new SimpleScalar(this.description));
-    
+
     final var acquisitions = new SimpleSequence();
     for (final var acquisition : this.acquisitionSequence) {
       acquisitions.add(acquisition.toTemplateData());

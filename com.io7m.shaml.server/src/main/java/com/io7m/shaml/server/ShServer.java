@@ -19,6 +19,7 @@ package com.io7m.shaml.server;
 
 import com.io7m.shaml.server.internal.ShEndpoint404;
 import com.io7m.shaml.server.internal.ShEndpointAuthDocument;
+import com.io7m.shaml.server.internal.ShEndpointBorrowShowsForm;
 import com.io7m.shaml.server.internal.ShEndpointCSS;
 import com.io7m.shaml.server.internal.ShEndpointCatalog;
 import com.io7m.shaml.server.internal.ShEndpointDownload;
@@ -123,6 +124,11 @@ public final class ShServer
     routingBuilder.post(
       "/saml_authenticate_run",
       new ShEndpointSAMLAuthenticateRun(configuration, sessions)
+    );
+
+    routingBuilder.get(
+      "/borrow-shows-form/*",
+      new ShEndpointBorrowShowsForm(configuration, sessions)
     );
 
     routingBuilder.get(

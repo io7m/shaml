@@ -17,30 +17,22 @@
 
 package com.io7m.shaml.server.internal;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.io7m.shaml.server.ShConfiguration;
 import freemarker.template.SimpleScalar;
-import io.helidon.http.SetCookie;
+import io.helidon.http.HeaderNames;
 import io.helidon.webserver.http.Handler;
 import io.helidon.webserver.http.ServerRequest;
 import io.helidon.webserver.http.ServerResponse;
 
 import java.io.OutputStreamWriter;
-import java.net.URI;
-import java.util.NoSuchElementException;
 
 import static com.io7m.shaml.server.internal.ShDisableCache.disableCache;
-import static com.io7m.shaml.server.internal.ShJSON.JSON;
 
-/**
- * The initial SAML authentication endpoint.
- */
-
-public final class ShEndpointSAMLAuthenticate
-  extends ShHandlerLogged
+public final class ShEndpointBorrowShowsForm
+  extends ShHandlerAuthenticated
   implements Handler
 {
-  public ShEndpointSAMLAuthenticate(
+  public ShEndpointBorrowShowsForm(
     final ShConfiguration inConfiguration,
     final ShSessions inSessions)
   {
@@ -48,28 +40,14 @@ public final class ShEndpointSAMLAuthenticate
   }
 
   @Override
-  public void handleLogged(
-    final ServerRequest serverRequest,
+  protected void handleAuthenticated(
+    final ServerRequest request,
+    final ShSession session,
     final ServerResponse serverResponse)
     throws Exception
   {
-    final URI redirectURI;
-
-    try {
-      redirectURI = URI.create(serverRequest.query().get("redirect_uri"));
-    } catch (final NoSuchElementException e) {
-      this.sendMissingParameterError(serverResponse, "redirect_uri");
-      return;
-    }
-
-    final var session = this.sessions.createSession();
-    session.put("RedirectURI", redirectURI);
-
-    final var cookie =
-      SetCookie.create("SHAML_SESSION_ID", session.id().toString());
-
     serverResponse.status(200);
-    serverResponse.headers().addCookie(cookie);
+    serverResponse.header(HeaderNames.CONTENT_TYPE, "text/html");
     disableCache(serverResponse);
 
     final var template =
@@ -77,29 +55,9 @@ public final class ShEndpointSAMLAuthenticate
     final var data =
       new ShTemplateData();
 
-    data.put("LoginTarget", new SimpleScalar("/saml_authenticate_run"));
+    data.put("LoginTarget", new SimpleScalar("/download"));
     try (final var output = new OutputStreamWriter(serverResponse.outputStream())) {
       template.process(data, output);
     }
-  }
-
-  private void sendMissingParameterError(
-    final ServerResponse serverResponse,
-    final String name)
-    throws JsonProcessingException
-  {
-    final var response = JSON.createObjectNode();
-    response.put(
-      "type",
-      "http://librarysimplified.org/terms/problem/saml/invalid-saml-request");
-    response.put("title", "Invalid SAML request.");
-    response.put("status", 401);
-    response.put(
-      "detail",
-      "Required parameter '%s' is missing.".formatted(name));
-
-    disableCache(serverResponse);
-    serverResponse.status(401);
-    serverResponse.send(JSON.writeValueAsBytes(response));
   }
 }
